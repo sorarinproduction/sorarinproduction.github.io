@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="jp">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <canvas id="mycanvas"></canvas>
+    <p id="mouseX"></p>
+    <p id="mouseY"></p>
+    <i class="fa-regular fa-arrow-pointer"></i>
+
+    <script async>
+        var canvas = document.getElementById('mycanvas');
+        var ctx = canvas.getContext("2d");
+        // size 設定
+        canvas.width = 240;
+        canvas.height = 180;
+        // background color 設定
+        ctx.beginPath();
+        ctx.fillStyle = 'rgb( 100, 0, 0)';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        window.addEventListener("load", function () {
+
+            // Window上のマウス座標を取得する
+            canvas.onmousemove = function (e) {
+                var mouseX, mouseY, offsetX = 0, offsetY = 0;
+                var element = this;
+
+                // まずは、対象要素が
+                // 画面上のどの位置にあるかを取得する
+                while (element) {
+                    offsetX += element.offsetLeft;
+                    offsetY += element.offsetTop;
+                    element = element.offsetParent;
+                }
+
+                // マルチブラウザ対応のため、引数eventが指定されないブラウザは、
+                // グローバルなeventオブジェクトを利用する
+                // + 1 はズレ直し
+                if (e) {
+                    mouseX = e.pageX - offsetX + 1;
+                    mouseY = e.pageY - offsetY + 1;
+                } else {
+                    mouseX = event.pageX + document.body.scrollLeft + 1;
+                    mouseY = event.pageY + document.body.scrollTop + 1;
+                }
+                // 取得した値を表示する
+                document.getElementById("mouseX").innerHTML = "x座標：" + mouseX;
+                document.getElementById("mouseY").innerHTML = "y座標：" + mouseY;
+            }
+            canvas.onmouseout = function (e) {
+                // 表示されていた値を消す
+                document.getElementById("mouseX").innerHTML = "x座標：";
+                document.getElementById("mouseY").innerHTML = "y座標：";
+            }
+
+        });
+
+    </script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.9.0/firebase-app.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyDxwkXEn4jy9s2zjgcvkYUDTq87HqU0KBo",
+            authDomain: "sharemouse-f7e5b.firebaseapp.com",
+            projectId: "sharemouse-f7e5b",
+            storageBucket: "sharemouse-f7e5b.appspot.com",
+            messagingSenderId: "147989594173",
+            appId: "1:147989594173:web:28697dca302b322da12a54"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+    </script>
+</body>
+
+</html>
