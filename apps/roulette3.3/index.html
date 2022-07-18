@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーレット</title>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        body {
+
+            background-color: #fff7cc;
+        }
+
+        .left {
+            margin: 1vh 0 0 1%;
+            width: 72%;
+            background-color: #fff099;
+            float: left;
+        }
+
+        .right {
+            width: 25%;
+            float: right;
+            height: 98vh;
+            margin: 1vh 1% 0 0;
+            padding: 0 1%;
+            background-color: #fff099;
+            border: solid #ffe033 3px;
+            box-sizing: border-box;
+        }
+
+        table,
+        td,
+        th {
+            border: solid #ffe033 3px;
+            border-collapse: collapse;
+        }
+
+        tr td {
+            text-align: center;
+        }
+
+        .wh100 table,
+        .wh100 table td div {
+            width: 100%;
+            height: 98vh;
+        }
+
+        .wh100 table td {
+            font-size: max(5vw, 18px);
+            width: 25%;
+        }
+
+        table .line {
+            background-color: #f9e88c;
+            /* 背景色 */
+            background-image: linear-gradient(-45deg, transparent 49%, #fff033 49%, #ffe033 51%, transparent 51%, transparent);
+            /* 右上がりの斜線 */
+        }
+
+        .gohome {
+            background: pink;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+
+<body id="body">
+    <div id="roulettes_and_parameter">
+        <div class="left wh100">
+            <table id="roulettes">
+                <thead>
+                    <tr>
+                        <th colspan="100">The roulettes</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div id="setting" class="right">
+            <div>
+                <label>残りの当選可能枠（組）</label><br>
+                <input type="number" min="0" max="12" id="use_volume" style="width: 90%;">
+            </div>
+            <div>
+                <label>参加人数（組）</label><br>
+                <input type="number" min="0" id="group_amount" placeholder="規定:80" style="width: 90%;">
+            </div>
+            <div>
+                <label>除外リスト</label><br>
+                <textarea id="except_number" placeholder="除外する数字を改行で区切って入力してください。"
+                    style="width: 90%; height: 70px;"></textarea>
+            </div>
+            <div>
+                <button onclick="click1()" id="button1">set</button>
+            </div>
+            <div>
+                <p id="msg"></p>
+            </div>
+        </div>
+    </div>
+    <div class="gohome">
+        <a href="../../index.html"><span>gohome</span></a>
+    </div>
+
+    <script async>
+        'use strict';
+        init_table('roulettes', '4', '3', '??');        // 表の初期設定
+        let click_count = -1;                            // 何回目か（-1は初期設定を行って0にするため）
+        let nglist = [];
+        let int = 0, id = 0;
+
+        function click1() {
+            document.getElementById('msg').textContent = "";
+            let use_volume = document.getElementById('use_volume').value;           //残りの当選可能枠
+            let group_amount = document.getElementById('group_amount').value;       // 参加数
+
+            if (click_count == -1) {         // 初回のみ実行
+
+                nglist = document.getElementById('except_number').value.split(/\n/);    // nglistの取得と整形
+                console.log(nglist);                                    // 素
+                for (let index = 0; index < nglist.length; index++) {
+                    nglist[index] = nglist[index] / 1;                  // 強制数値化
+                }
+                console.log(nglist);                                    // 数値化
+                nglist = nglist.filter(x => x !== 0 && !(isNaN(x)));    // 文字(NaN)を削除
+                console.log(nglist);                                    // 整形後
+
+                console.log(use_volume, group_amount)
+                if ((use_volume == "") || (group_amount == "")) {
+                    console.log('error : 「残りの当選可能枠」、「参加人数」を入力してください。');
+                    document.getElementById('msg').textContent = "error : 「残りの当選可能枠」、「参加人数」を入力してください。";
+                    return 1;
+                }
+                if (use_volume > 12) {  // 残りの当選可能枠が12を超過
+                    console.log('error : 「残りの当選可能枠」は12以下にしてください。');
+                    document.getElementById('msg').textContent = "error : 「残りの当選可能枠」は12以下にしてください。";
+                    return 1;
+                }
+                if (use_volume > group_amount - nglist.length) {  // 参加者より当選者が多い->初期設定を破棄して最初から
+                    console.log('error : 「参加人数」より「当選可能枠」が多くなっています。');
+                    document.getElementById('msg').textContent = "error : 「参加人数」より「当選可能枠」が多くなっています。";
+                    return 1;
+                }
+                for (let g = 11; g > use_volume - 1; g--) {
+                    console.log('cell' + g);
+                    document.getElementById('cell' + g).classList.add("line");
+                    document.getElementById('cell' + g).innerText = "　";
+                }
+
+                document.getElementById('use_volume').disabled = true;              // inputの無効化とボタンテキストの変更
+                document.getElementById('group_amount').disabled = true;
+                document.getElementById('except_number').disabled = true;
+                document.getElementById('button1').textContent = "start";
+                click_count = 0;
+                return 0;
+
+            }
+            if (click_count == 0) {
+                document.getElementById('button1').textContent = "next";
+                click_count++;
+                id = setInterval(() => {
+                    do {
+                        int = getRandomInt(group_amount) + 1;
+                    } while (nglist.includes(int));
+                    let temp = click_count - 1;
+                    document.getElementById('cell' + temp).innerText = int;
+                }, 10);
+                return 0;
+            }
+            if (click_count == use_volume) {
+                clearInterval(id);
+                document.getElementById('button1').textContent = "finished";
+                document.getElementById('button1').disabled = true;
+            }
+            click_count++;
+            nglist.push(int);
+            console.log("nglist :" + nglist);
+        }
+
+        function getRandomInt(max) {
+            return Math.floor(Math.random() * max);
+        }
+
+        function init_table(id, line, column, fill_text) {
+            let table_count = 0;
+            // table要素を取得
+            var tableElem = document.getElementById(id);
+            for (let a = 0; a < column; a++) {
+
+                // tbody要素にtr要素（行）を最後に追加
+                var trElem = tableElem.tBodies[0].insertRow(-1);
+                for (let b = 0; b < line; b++) {
+
+                    // td要素を最後に追加
+                    var cellElem = trElem.insertCell(-1);
+                    cellElem.id = 'cell' + table_count;
+                    table_count++;
+
+                    // td要素にテキストを追加
+                    cellElem.appendChild(document.createTextNode(fill_text));
+                }
+            }
+        }
+    </script>
+</body>
+
+</html>
