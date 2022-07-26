@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーレット</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        .wheel-pin {
+            color: red;
+            font-size: 70px;
+            text-shadow: 1px 2px 3px white;
+            position: absolute;
+            top: 460px;
+            left: 960px;
+            /* position:relative;
+            top: -490px;
+            left: 900px; */
+            /* transform: scale(-1, -1); */
+            transform: scaleX(-1);
+        }
+
+
+        .wheel-box {
+            margin: 0;
+            padding: 3rem 5rem;
+            height: 95vh;
+            float: left;
+        }
+
+        .result-box {
+            padding: 5rem 2rem;
+            float: right;
+            width: 40%;
+        }
+
+        .disp-result,
+        .results-wrap {
+            border: 8px ridge rgba(76, 41, 91, 0.6);
+            border-radius: 2rem;
+            padding: 1rem;
+            margin: 1rem;
+        }
+
+        .rotate-button {
+            margin: 40px 390px;
+            width: 50px;
+        }
+
+        .css-button-fully-rounded--black {
+            min-width: 130px;
+            height: 40px;
+            color: #fff;
+            padding: 5px 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            display: inline-block;
+            outline: none;
+            border-radius: 20px;
+            border: 2px solid #212529;
+            background: #212529;
+        }
+
+        .css-button-fully-rounded--black:hover {
+            background: #fff;
+            color: #212529
+        }
+
+        .result {
+            font-size: 120px;
+        }
+
+        .results {
+
+            list-style-type: none;
+            list-style: none;
+            padding-left: 0;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: 80px;
+        }
+
+        .results li {
+            margin: 0 0 0 100px;
+            width: 100px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wheel-box">
+        <div class="wheel">
+            <canvas class="wheel-canvas" id="wheel_canvas">図形を表示するには、canvasタグをサポートしたブラウザが必要です。</canvas>
+            <span class="wheel-pin" id="wheel_pin">➤</span>
+        </div>
+        <div class="rotate-button-wrap">
+            <button class="rotate-button css-button-fully-rounded--black" id="rotate_button"
+                onclick="rotate()">rotate</button>
+        </div>
+    </div>
+    <div class="result-box" id="result_box">
+        <div class="disp-result" id="disp_result">
+            <h1>結果</h1>
+            <span id="result" class="result"> </span>
+        </div>
+        <div class="results-wrap" id="results_wrap">
+            <h1>結果一覧</h1>
+            <ul id="results" class="results"></ul>
+        </div>
+    </div>
+    <script async>
+        'usestrict';
+
+        let list = [];
+        for (let i = 1; i < 37; i++) {
+            list.push(i);
+        }
+        let colorList = ['#232323', '#343434', '#454545'];
+        // 半径
+        const radius = 460;
+        let deg = 0;
+
+        let click_count = 0;
+
+        //コンテキストを取得
+        const canvas = document.getElementById('wheel_canvas');
+        const ctx = canvas.getContext('2d');
+
+        make_circle();
+
+
+
+        function make_circle() {
+
+            canvas.width = radius * 2;
+            canvas.height = radius * 2;
+            ctx.clearRect(0, 0, radius * 2, radius * 2);
+
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(0,0,0,5)';
+            ctx.arc(radius, radius, 460, 0, Math.PI * 2);
+            ctx.fill();
+            // 円を描画
+            for (let index = 0; index < list.length; index++) {
+
+                // ラジアンを求める
+                var radianStart = getRadian(360 / list.length * (index + 1));
+                var radianEnd = getRadian(360 / list.length * index);
+
+                // 色の連続を防ぐ
+                if (!((list.length - 1) % colorList.length) && (index + 1 == list.length)) {
+                    ctx.fillStyle = colorList[1];
+                } else {
+                    ctx.fillStyle = colorList[index % colorList.length];
+                }
+
+                // 扇形を描画
+                ctx.beginPath();
+                ctx.moveTo(radius, radius)
+                ctx.arc(radius, radius, radius, radianStart, radianEnd, true);
+                ctx.stroke();
+                ctx.fill();
+
+
+                // listを描画
+                ctx.save();
+
+                ctx.fillStyle = '#ffff99';
+                ctx.font = '50px serif';
+                let measure = ctx.measureText(list[index]);
+                ctx.translate(canvas.width / 2, canvas.height / 2);
+                ctx.rotate((radianStart + radianEnd) / 2);
+                ctx.translate(-canvas.width / 2, -canvas.height / 2);
+                console.log(measure.width);
+                textWidth = measure.width;
+                if (textWidth > 100) {
+                    textWidth = 100;
+                }
+                ctx.fillText(list[index], radius * 2 - textWidth - 20, radius + 20, 100);
+
+                ctx.restore();
+            }
+
+            ctx.beginPath();
+            ctx.fillStyle = '#666666';
+            ctx.arc(radius, radius, 40, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(0,0,0,0.3)';
+            ctx.arc(radius, radius, 45, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.beginPath();
+            ctx.fillStyle = 'rgba(0,0,0,0.5)';
+            ctx.arc(radius, radius, 30, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+
+
+        let id = 0;
+        let stop_flag = 0;
+        let count = 0;
+
+        // 回転させる関数
+        function rotate() {
+            document.getElementById('rotate_button').disabled = true;
+            if (click_count % 3 == 0) { // rotate が押された
+                stop_flag = 0; // stop_flagの初期化
+                deg = deg % 360; // 前回の角度保持
+                count = 0; // ストップが押されてからのカウント
+                let acceleration = 30;
+                id = setInterval(() => {
+                    canvas.style = 'transform: rotate(' + deg + 'deg)';
+                    console.log(deg);
+                    deg += 1 + acceleration;
+                    if (stop_flag) {
+                        document.getElementById('rotate_button').disabled = true;
+                        count++;
+                        console.log("aaa");
+                        acceleration *= 0.9;
+                        if (count > 100) {
+                            clearInterval(id); document.getElementById('result').textContent = list[Math.abs(Math.floor((360 - (deg % 360)) / 360 * (list.length)))];
+                            document.getElementById('rotate_button').textContent = 'next >';
+                            // ul要素を取得
+                            var ul = document.getElementById('results');
+
+                            // li要素を作成
+                            var li = document.createElement('li');
+
+                            // テキスト情報を作成
+                            var text = document.createTextNode(list[Math.abs(Math.floor((360 - (deg % 360)) / 360 * (list.length)))]);
+
+                            // ul要素に追加
+                            li.appendChild(text);
+                            ul.appendChild(li);
+                            document.getElementById('rotate_button').disabled = false;
+                        }
+                    }
+                }, 30);
+                document.getElementById('rotate_button').textContent = 'stop';
+                document.getElementById('rotate_button').disabled = false;
+            }
+            if (click_count % 3 == 1) { // stop が押された
+                stop_flag = 1;
+            }
+            if (click_count % 3 == 2) { // next > が押された
+
+                list.splice(Math.abs(Math.floor((360 - (deg % 360)) / 360 * (list.length))), 1);
+                make_circle();
+                document.getElementById('rotate_button').textContent = 'rorate';
+                document.getElementById('rotate_button').disabled = false;
+            }
+            let rand = getRandomInt(0, 360);
+
+            click_count++;
+
+        }
+
+        // 配列からxを削除して詰める
+        // const newArray = array.filter(n => n !== 1);
+        console.log(list.splice(Math.abs(Math.floor((360 - (deg % 360)) / 360 * (list.length))), 1));
+
+        // ラジアンを返す関数
+        function getRadian(degree) {
+
+            return degree * Math.PI / 180;
+
+        }
+
+        // ランダムな数を返す関数
+        function getRandomInt(min, max) {
+            if (max < min) {
+                return Error;
+            }
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+    </script>
+</body>
+
+</html>
