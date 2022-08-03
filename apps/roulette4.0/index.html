@@ -91,43 +91,50 @@
             margin: 0 0 0 100px;
             width: 100px;
         }
-    </style>
+        
+        #mybody {
+            background-color: #212529;
+            color: #ffffff;
+        }
+        </style>
 </head>
 
-<body id="mybody">
-    <div class="wheel-box">
-        <div class="wheel">
-            <canvas class="wheel-canvas" id="wheel_canvas">図形を表示するには、canvasタグをサポートしたブラウザが必要です。</canvas>
-            <span class="wheel-pin" id="wheel_pin">➤</span>
-        </div>
-        <div class="rotate-button-wrap">
-            <button class="rotate-button css-button-fully-rounded--black" id="rotate_button"
-                onclick="rotate()">rotate</button>
-        </div>
-    </div>
-    <div class="result-box" id="result_box">
-        <div class="disp-result" id="disp_result">
-            <h1>結果</h1>
-            <span id="result" class="result"> </span>
-        </div>
-        <div class="results-wrap" id="results_wrap">
-            <h1>結果一覧</h1>
-            <ul id="results" class="results"></ul>
+<body>
+    <div id="mybody">
+        <div id="parameter" class="parameter">
+            <label>上部の隙間</label>
+            <input type="number" id="margin_top">
+            <button onclick="margin_set()">決定</button>
+            <br>
+            <button onclick="margin_set_hide()">非表示</button>
         </div>
     </div>
-    <div id="parameter" class="parameter">
-        <label>上部の隙間</label>
-        <input type="number" id="margin_top">
-        <button onclick="margin_set()">決定</button>
-        <br>
-        <button onclick="margin_set_hide()">非表示</button>
-    </div>
+        <div class="wheel-box">
+            <div class="wheel">
+                <canvas class="wheel-canvas" id="wheel_canvas">図形を表示するには、canvasタグをサポートしたブラウザが必要です。</canvas>
+                <span class="wheel-pin" id="wheel_pin">➤</span>
+            </div>
+            <div class="rotate-button-wrap">
+                <button class="rotate-button css-button-fully-rounded--black" id="rotate_button"
+                    onclick="rotate()">rotate</button>
+            </div>
+        </div>
+        <div class="result-box" id="result_box">
+            <div class="disp-result" id="disp_result">
+                <h1>結果</h1>
+                <span id="result" class="result"> </span>
+            </div>
+            <div class="results-wrap" id="results_wrap">
+                <h1>結果一覧</h1>
+                <ul id="results" class="results"></ul>
+            </div>
+        </div>
     <script async>
         'usestrict';
 
         function margin_set() {
             margin_top_value = document.getElementById('margin_top').value;
-            document.getElementById('mybody').style.marginTop = margin_top_value + 'px';
+            document.getElementById('mybody').style.paddingTop = margin_top_value + 'px';
             document.getElementById('wheel_pin').style.top = margin_top_value * 1 + 460 + 'px';
             console.log('7');
         }
